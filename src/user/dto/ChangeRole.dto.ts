@@ -1,4 +1,4 @@
 export class ChangeRoleDto {
-  readonly value: string;
-  readonly description: string;
+    readonly value: string
+    readonly userId: number
 }

@@ -14,6 +14,9 @@ import { UserRoles } from './role/user-roles.model'
 import { FilesModule } from './files/files.module'
 import { CommentModule } from './comment/comment.module'
 import { Comment } from './comment/comment.model'
+import { BackupModule } from './backup/backup.module'
+import { History } from './backup/backup-history.model'
+import { Details } from './backup/backup-details.model'
 
 @Module({
     imports: [
@@ -32,13 +35,15 @@ import { Comment } from './comment/comment.model'
             username: 'postgres',
             password: 'postgres',
             database: 'rekaid',
-            models: [User, Post, Role, UserRoles, Comment],
+            models: [User, Post, Role, UserRoles, Comment, History, Details],
             autoLoadModels: true,
+            sync: { alter: true },
         }),
         PostModule,
         RoleModule,
         FilesModule,
         CommentModule,
+        BackupModule,
     ],
 })
 export class AppModule {}

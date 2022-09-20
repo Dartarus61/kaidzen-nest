@@ -5,6 +5,7 @@ import { CreateUserDto } from '../user/dto/create_user.dto'
 import { ResetPassDto } from './dto/respass.dto'
 import * as bcrypt from 'bcrypt'
 import { User } from 'src/user/user.model'
+import { LoginDto } from './dto/login.dto'
 
 @Injectable()
 export class AuthService {
@@ -26,7 +27,7 @@ export class AuthService {
         return { token: this.jwtService.sign(payload) }
     }
 
-    private async validateUser(userDto: CreateUserDto) {
+    private async validateUser(userDto: LoginDto) {
         const user = await this.userService.getUserByEmail(userDto.email)
         const passwordEquals = await bcrypt.compare(userDto.password, user.password)
         if (user && passwordEquals) {
@@ -35,7 +36,7 @@ export class AuthService {
         throw new UnauthorizedException({ message: 'Некорректный пароль или емаил' })
     }
 
-    async login(userDto: CreateUserDto) {
+    async login(userDto: LoginDto) {
         const user = await this.validateUser(userDto)
         return this.generateToken(user)
     }
