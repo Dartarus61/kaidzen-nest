@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/sequelize'
 import { Details } from './backup-details.model'
 import { History } from './backup-history.model'
 import { CreateLineDto } from './dto/CreateLine.dto'
+import { createPreLogDto } from './dto/createPreLog.dto'
 
 @Injectable()
 export class BackupService {
@@ -18,6 +19,8 @@ export class BackupService {
     }
 
     async CreateLine(dto: CreateLineDto) {
+        console.log('loggggggggggggg')
+
         const my_details = {
             column_name: dto.column_name,
             value: dto.value,
@@ -30,43 +33,44 @@ export class BackupService {
         }
         delete dto.value
         delete dto.column_name
-        const line = await this.HistoryRepository.create({ ...dto, current: true })
+        const line = await this.HistoryRepository.create({ ...dto, current: true, idOfLine: id })
+        const logLine = await this.HistoryRepository.findOne({ where: { id: line.id - 1 } })
+        if (logLine) logLine.update({ current: false })
         let column_name_mas = my_details.column_name.split(',')
         column_name_mas.pop()
         for (let index = 0; index < column_name_mas.length; index++) {
             let details = await this.DetailsRepository.create({
                 column_name: column_name_mas[index],
                 value: { ...my_details.value },
-                idOfLine: id,
             })
             await line.$add('details', details)
         }
-
-        console.log(line)
     }
 
-    async createDto(method: string, table_name: string, predto, columns?) {
+    async createDto(/* method: string, table_name: string, predto, columns?, */ dto?: createPreLogDto) {
+        console.log('123123123231231')
+
         let str: string = ''
         let time: string
-        if (method == 'create') {
-            for (const key in predto) {
+        if (dto.method == 'create') {
+            for (const key in dto.predto) {
                 str += `${key},`
             }
-            time = predto.createdAt
-        } else if (method == 'update') {
-            for (const key in columns) {
+            time = dto.predto.createdAt
+        } else if (dto.method == 'update') {
+            for (const key in dto.columns) {
                 str += `${key},`
             }
-            time = predto.updatedAt
+            time = dto.predto.updatedAt
         }
-        let dto = {
-            action: method,
-            table_name,
+        let full_dto = {
+            action: dto.method,
+            table_name: dto.table_name,
             data: time,
             column_name: str,
-            value: predto,
+            value: dto.predto,
         }
-        return dto
+        return full_dto
     }
 
     async getAll() {

@@ -1,3 +1,4 @@
+import { HttpModule } from '@nestjs/axios'
 import { forwardRef, Module } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { SequelizeModule } from '@nestjs/sequelize'
@@ -20,6 +21,7 @@ import { UserService } from './user.service'
         RoleModule,
         BackupModule,
         forwardRef(() => AuthModule),
+        HttpModule,
     ],
 })
 export class UserModule {}

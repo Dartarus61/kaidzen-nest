@@ -17,9 +17,6 @@ export class Details extends Model<Details> {
     @Column({ type: DataType.JSON, allowNull: false })
     value: JSON
 
-    @Column({ type: DataType.INTEGER, allowNull: false })
-    idOfLine: number
-
     @ForeignKey(() => History)
     @Column({ type: DataType.INTEGER })
     historyId: number

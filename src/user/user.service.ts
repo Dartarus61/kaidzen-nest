@@ -1,6 +1,10 @@
+import { HttpService } from '@nestjs/axios'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/sequelize'
+import { AxiosResponse } from 'axios'
+import { Observable } from 'rxjs'
 import { BackupService } from 'src/backup/backup.service'
+import { createPreLogDto } from 'src/backup/dto/createPreLog.dto'
 import { RoleService } from 'src/role/role.service'
 import { ChangeRoleDto } from './dto/ChangeRole.dto'
 import { CreateUserDto } from './dto/create_user.dto'
@@ -13,7 +17,8 @@ export class UserService {
         @InjectModel(User)
         private userRepository: typeof User,
         private roleService: RoleService,
-        private backupService: BackupService
+        private backupService: BackupService,
+        private httpService: HttpService
     ) {}
 
     async createUser(dto: CreateUserDto) {
@@ -21,7 +26,13 @@ export class UserService {
         const role = await this.roleService.getRoleByValue('ADMIN')
         await user.$set('roles', [role.id])
         user.roles = [role]
-        this.backupService.CreateLine(await this.backupService.createDto('create', 'users', user.toJSON()))
+        const log = {
+            method: 'create',
+            table_name: 'user',
+            predto: user.toJSON(),
+        }
+        //this.create(log)
+        this.backupService.CreateLine(await this.backupService.createDto(log))
         return user
     }
     async addRole(dto: ChangeRoleDto) {
@@ -42,9 +53,14 @@ export class UserService {
     async updateUser(dto: UpdateUserDto) {
         const user = await this.userRepository.findByPk(dto.id)
         if (user) {
+            let log = {
+                method: 'update',
+                table_name: 'user',
+                predto: user.toJSON(),
+            }
+            this.backupService.CreateLine(await this.backupService.createDto(log))
             delete dto.id
             await user.update({ ...dto })
-            this.backupService.CreateLine(await this.backupService.createDto('update', 'users', user.toJSON(), dto))
             return user
         }
     }
@@ -59,6 +75,12 @@ export class UserService {
 
     async deleteUser(email: string) {
         const user = await this.getUserByEmail(email)
-        await this.userRepository.destroy(user)
+        await this.userRepository.destroy({ where: { id: user.id } })
+    }
+
+    async create(dto: createPreLogDto): Promise<Observable<AxiosResponse<any, any>>> {
+        console.log(1000)
+
+        return this.httpService.post('http://localhost:5000/backup/log', dto)
     }
 }

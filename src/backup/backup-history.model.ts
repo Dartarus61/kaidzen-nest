@@ -20,6 +20,9 @@ export class History extends Model<History> {
     @Column({ type: DataType.DATE, allowNull: false })
     data: string
 
+    @Column({ type: DataType.INTEGER, allowNull: false })
+    idOfLine: number
+
     @Column({ type: DataType.BOOLEAN, allowNull: false })
     current: boolean
 
